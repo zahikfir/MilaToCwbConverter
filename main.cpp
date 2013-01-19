@@ -1,196 +1,101 @@
 #include <iostream>
-#include <fstream>
-#include "pugixml-1.2/pugixml.hpp"
-#include "pugixml-1.2/pugiconfig.hpp"
-#include "Corpus.h"
-#include <string>
-#include <map>
-#include <fts.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <algorithm>
+#include "MilatoCWBConverter.h"
 
 using namespace std;
-using namespace pugi;
 
 int main(int argc, char **argv) {
 
-	//Getting default definitions
+	//Start of Execution
 
-	//Creating the document
-	xml_document configdoc;
+	cout << "----------------------------------------------" << endl;
+	cout << " Welcome to the MilaToCwbConverter and Encoder" << endl;
+	cout << "----------------------------------------------" << endl;
+	cout << endl << endl;
 
-	//Save the input and output folders path
-	string InputFolderPath ;//= paths[0];
-	string OutputFolderPath ;//= paths[1];
+	//Create and initialize the converter class with the data from the configuration file
 
-	//Load the file
-	xml_parse_result result = configdoc.load_file("ConverterConfig.xml");
+	cout << "-----------------------" << endl;
+	cout << "    Initialization     " << endl;
+	cout << "-----------------------" << endl;
 
-	//Check if the xml file is valid
-	if (result){
-		xml_node ConfigurationNode = configdoc.child("configuration");
-		xml_node MilaNode = ConfigurationNode.child("MilaCorporaPath");
-		if (MilaNode)
-		{
-			InputFolderPath = MilaNode.attribute("path").value();
-		}
-		xml_node outputFolderNode = ConfigurationNode.child("OutputFolderPath");
-		if (outputFolderNode){
-			OutputFolderPath = outputFolderNode.attribute("path").value();
-		}
-	}
-	else {
-		cout << "Can't open configuration file . Closing application" << endl;
+	CMilatoCWBConverter mainConverter;
+	if (!mainConverter.Init()){
+		cout << "Error Initializing the converter. Please check the ConverterConfig.xml file." << endl;
 		return false;
 	}
 
-	//Checking for input arguments
-	char *dot[] = {(char*)InputFolderPath.c_str(), (char*)OutputFolderPath.c_str(), 0};
+	cout << endl << endl;
 
+	//Printing the menu
 
-	//If there is no arguments run the program with the default folders
-	char **paths = argc > 1 ? argv + 1 : dot;
+	cout << "-----------------------" << endl;
+	cout << "       MainMenu        " << endl;
+	cout << "-----------------------" << endl;
 
-	//Save the input and output folders path
-	InputFolderPath = paths[0];
-	OutputFolderPath = paths[1];
+	cout << "Choose the required option. If one of the folder paths is incorrect please exit the program and change the ConverterConfig.xml file. " << endl << endl;
 
-	//Open a linux folders tree
-	FTS *tree = fts_open(paths, FTS_NOCHDIR, 0);
-	if (!tree) {
-		perror("fts_open");
-		return 1;
-	}
+	//Print the Configuration paths
+	mainConverter.PrintConfigurationPaths();
+	cout << endl << endl;
 
+	//Print the options
+	cout << "1. Clean the vrt folder , Convert the data in the mila folder to vrt's and store it in the vrt folder" << endl;
+	cout << "2. Encode and compress the data located in the vrt folder to CWB" << endl;
+	cout << "3. Encode and compress the data located in the vrt folder to CWB and cleanup the vrt folder" << endl;
+	cout << "4. Execute options 1 and 2" << endl;
+	cout << "5. Execute options 1 and 3" << endl;
+	cout << "9. Exit the program" << endl;
 
+	//Get the user's choice
+	cout << "Choice : ";
+	int choice;
+	cin >> choice;
 
-	//Start working on every xml file in the input directory.
-	FTSENT *node;
-
-	//A place holder for the currnet folder
-	//Every vrt file will have is current folder string as the value of the id attribute of the text node
-	string sCurrentFolder;
-	while ((node = fts_read(tree)))
+	//Execute the user's choice
+	switch (choice)
 	{
-		if (node->fts_level > 0 && node->fts_name[0] == '.')
-			fts_set(tree, node, FTS_SKIP);
-		else if (node->fts_info & FTS_D)
-		{
-			//Saves the current folder
-			sCurrentFolder = node->fts_name;
-
-			//Check if the name is valid (a valid c variable name)
-			//Add a prefix of t(text) to the value
-			sCurrentFolder.insert(0,"t");
-
-			//Replace all occurences of "-" with "_"
-			string from = "-";
-			string to = "_";
-			while(sCurrentFolder.find(from) != std::string::npos) {
-				sCurrentFolder.replace(sCurrentFolder.find(from), from.length(), to);
-			}
-
-
-			//Create the output folder
-			 string vrtPath = node->fts_accpath;
-			 vrtPath.replace(vrtPath.find(InputFolderPath),InputFolderPath.length(),OutputFolderPath.data());
-			 cout << " --- Creating output folder " << vrtPath << endl;
-			 mkdir(vrtPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		}
-		//If corrent node is a file
-		else if (node->fts_info & FTS_F)
-		{
-
-			//The absoulte path to the mila xml file including the name
-			string xmlName = node->fts_accpath;
-
-			//The name of the output vrt file
-			string outName = node->fts_name;
-			outName.replace(outName.find(".xml"),4,".vrt");
-
-			//The path to the output file
-			string vrtPath = xmlName.data();
-			vrtPath.replace(vrtPath.find(InputFolderPath),InputFolderPath.length(),OutputFolderPath.data());
-			vrtPath.replace(vrtPath.find(node->fts_name),outName.length(),"");
-
-			//Start Parsing this xml file
-			cout << "=======================================================" << endl;
-			cout << "Start Parsing " << xmlName << " to folder " << sCurrentFolder << " In path: "<< vrtPath << " and file " << outName << endl;
-
-			//////////////////////////////////////////////////
-			//Loading document
-
-			//Creating the document
-			xml_document doc;
-
-			//Load the file
-			xml_parse_result result = doc.load_file(xmlName.data());
-
-			//Check if the xml file is valid
-			if (result)
-			{
-				//If valid
-
-				//Create writing file stream
-				outName.insert(0, vrtPath.data());
-				ofstream outputFile(outName.data());
-
-				//If enable to open output file
-				if (outputFile.is_open())
-				{
-					xml_node corpusNode= doc.child("corpus");
-					if (corpusNode)
-					{
-
-						//Start parsing the xml file into the outputfile
-						cout << "Start parsing " << corpusNode.attribute("name").value() << endl;
-
-						//Create a corpus object
-						CCorpus corpus(&corpusNode,&outputFile, sCurrentFolder);
-
-						//Initialize the mila converter helper class
-						corpus.InitializeConverter();
-
-						//Start parsing
-						if (!corpus.Parse())
-							cout << "Error Parsing " << corpusNode.attribute("name").value() << endl;
-						else
-							cout << "Parsing completed" << endl;
-					}
-					//close the output file
-					outputFile.close();
-				}
-				//if Failed to open file
-				else {
-					cout << "Unable to open output file" << endl;
-					if (fts_close(tree)) {
-							perror("fts_close");
-							return false;
-						}
-					return false;
-				}
-
-			}
-			else
-			{
-				//if Not valid print the description
-				cout << "Load result " << result.description() << endl;
-				cout << "Error offset: " << result.offset << "(error at [..." << xmlName << result.offset << "]" << endl << endl;
-				if (fts_close(tree)) {
-						perror("fts_close");
-						return false;
-					}
-				return false;
-			}
-		}
+	case 1:
+		mainConverter.CleanTheVrtFolder();
+		mainConverter.ConvertFromMilaToVrt();
+		break;
+	case 2:
+		mainConverter.EncodeVrtToCWB();
+		mainConverter.CompressCorpus();
+		break;
+	case 3:
+		mainConverter.EncodeVrtToCWB();
+		mainConverter.CompressCorpus();
+		mainConverter.CleanTheVrtFolder();
+		break;
+	case 4:
+		mainConverter.CleanTheVrtFolder();
+		mainConverter.ConvertFromMilaToVrt();
+		mainConverter.EncodeVrtToCWB();
+		mainConverter.CompressCorpus();
+		break;
+	case 5:
+		mainConverter.CleanTheVrtFolder();
+		mainConverter.ConvertFromMilaToVrt();
+		mainConverter.EncodeVrtToCWB();
+		mainConverter.CompressCorpus();
+		mainConverter.CleanTheVrtFolder();
+		break;
+	case 9:
+		break;
+	default:
+		cout << "Wrong choice. The program will stop" << endl;
+		break;
 	}
 
-	if (fts_close(tree)) {
-		perror("fts_close");
-		return false;
-	}
+	//Closing Program
+
+	cout << endl << endl;
+	cout << "-----------------------" << endl;
+	cout << "     End of Program    " << endl;
+	cout << "-----------------------" << endl;
+	cout << "Thanks For using the MilaToCWB Converter and Encoder" << endl;
 
 	return true;
 }
+
 

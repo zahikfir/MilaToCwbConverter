@@ -71,14 +71,12 @@ bool CBaseType::Parse(xml_node* node, ofstream* out){
 		m_BaseFunctionsMap[node->name()](node, out);
 	else {
 
-		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-		cout << "Error Parsing BaseType : " << node->name() << endl;
-		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-
+		cout << endl << "Created an empty base type for  " ;
 		for (int i = 0; i < 12 /* Base Cells -lexiconitem cell*/; i++)
 		{
-			*out << "---\t";
+			*out << EMPTYCELL << "\t";
 		}
+		return false;
 	}
 	return true;
 }
@@ -392,6 +390,7 @@ bool CBaseType::interjection(xml_node* node, ofstream* out){
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+	return true;
 
 }
 

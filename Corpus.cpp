@@ -14,22 +14,6 @@ CCorpus::CCorpus(xml_node* doc, ofstream* out, string currentFolder) :CMilaEleme
 
 CCorpus::~CCorpus() {
 
-	//Adding dummy sentence for the compression to succeed.
-	//The cwb-make compression faild an attribute have only one value all over the file
-	//We fix it by adding a dummy sentence to the end of every file
-	cout << "Adding dummy sentence" << endl;
-
-	//Structural attributes
-	*m_out << "<a>" << endl << "<p>" << endl << "<s>" << endl;
-
-	//The dummy sentence
-	*m_out << "endText\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9" << endl;
-
-	//Closing structural attributes
-	*m_out << "</s>" << endl << "</p>" << endl << "</a>" << endl;
-
-	//Closing the text file
-	*m_out << "</text>" << endl;
 }
 
 bool CCorpus::Parse(){
@@ -43,6 +27,22 @@ bool CCorpus::Parse(){
 		if (!article.Parse())
 			return false;
 	}
+
+	//Adding dummy sentence for the compression to succeed.
+	//The cwb-make compression faild an attribute have only one value all over the file
+	//We fix it by adding a dummy sentence to the end of every file
+
+	//Structural attributes
+	*m_out << "<a>" << endl << "<p>" << endl << "<s>" << endl;
+
+	//The dummy sentence
+	*m_out << "endText\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9" << endl;
+
+	//Closing structural attributes
+	*m_out << "</s>" << endl << "</p>" << endl << "</a>" << endl;
+
+	//Closing the text file
+	*m_out << "</text>" << endl;
 
 	//Finish parse
 	return true;

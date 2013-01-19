@@ -122,9 +122,12 @@ bool CBaseNode::Parse(){
 
 	//Updating the m_doc node
 	xml_node node = m_doc->first_child();
-	m_doc = &node;
 
-	m_BaseTypeHelper->Parse(m_doc, m_out);
+	if (!m_BaseTypeHelper->Parse(&node, m_out))
+	{
+		cout << " lexiconItem : " << m_doc->attribute("lexiconItem").value();
+		return false;
+	}
 
 	return true;
 }
@@ -219,7 +222,8 @@ bool CAnalysis::Parse(){
 	if (baseNode)
 	{
 		CBaseNode base(&baseNode, m_out);
-		base.Parse();
+		if (!base.Parse())
+			cout << "in analysis node : " << m_doc->attribute("id").value() << endl;
 	}
 	else {
 		for (int i = 0; i < BASECELLS; i++)

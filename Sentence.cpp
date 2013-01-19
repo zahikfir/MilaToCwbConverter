@@ -19,7 +19,7 @@ CSentence::~CSentence() {
 bool CSentence::Parse(){
 	//Parse the sentence Element
 
-	cout << "Start Parsing sentence number " << m_doc->attribute("id").value() << endl;
+	//cout << "Start Parsing sentence number " << m_doc->attribute("id").value() << endl;
 
 	int countTokens = 0;
 
@@ -34,7 +34,7 @@ bool CSentence::Parse(){
 			return false;
 	}
 
-	cout << "Finished parsing sentence "<< m_doc->attribute("id").value() << " with " << countTokens << " tokens" << endl;
+	//cout << "Finished parsing sentence "<< m_doc->attribute("id").value() << " with " << countTokens << " tokens" << endl;
 
 
 	//Finish parse
