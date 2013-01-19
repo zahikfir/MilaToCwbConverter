@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+<MilaCorporaPath path="/media/haims/Volume 2/NLPLab/MilaCorpora/"/>
+<OutputFolderPath path="/media/haims/Volume 2/NLPLab/PreEncodedCorpora/"/>
+</configuration>
