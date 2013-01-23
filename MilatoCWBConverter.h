@@ -48,6 +48,10 @@ public:
 	bool CompressCorpus();
 
 private:
+
+	//Create the corpus folders in the CWBData folders
+	bool CreateCorpusFolders();
+
 	string m_MilaFolderPath;
 	string m_VrtFolderPath;
 	string m_CWBDataFolderPath;

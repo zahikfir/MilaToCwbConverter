@@ -283,6 +283,8 @@ bool CMilatoCWBConverter::EncodeVrtToCWB(){
 	cout << "Encoding the VRT corpora" << endl;
 	cout << "-------------------------" << endl << endl;
 
+	CreateCorpusFolders();
+
 	//Open a linux folders tree
 	char *dot[] = {const_cast<char *>(m_VrtFolderPath.data()), 0};
 	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
@@ -312,7 +314,7 @@ bool CMilatoCWBConverter::EncodeVrtToCWB(){
 				sEncodeCommand.insert(sEncodeCommand.length(),m_CWBRegistryFolderPath);
 				sEncodeCommand.insert(sEncodeCommand.length(),node->fts_name);
 				sEncodeCommand.insert(sEncodeCommand.length(),
-				" -c utf8 -P prefix1 -P prefix2 -P prefix3 -P prefix4 -P prefix5 -P prefix6 -P lexiconitem -P base -P expansion -P function -P root -P subcoordinating -P mood -P value -P id -P pos -P consecutive -P multiword -P type -P suffix -S a -S p -S s -S text:0+id 2>&1");
+				" -P prefix1 -P prefix2 -P prefix3 -P prefix4 -P prefix5 -P prefix6 -P lexiconitem -P base -P expansion -P function -P root -P subcoordinating -P mood -P value -P id -P pos -P consecutive -P multiword -P type -P suffix -S a -S p -S s -S text:0+id 2>&1");
 
 				cout << "Executing encode command : " << endl << endl;
 				cout << sEncodeCommand << endl;
@@ -395,6 +397,48 @@ bool CMilatoCWBConverter::CompressCorpus(){
 
 				subCorpusPaths = "";
 			}
+		}
+	}
+
+	cout << endl;
+
+	if (fts_close(tree)) {
+		perror("fts_close");
+		return false;
+	}
+
+	return true;
+}
+
+//Create the corpus folders in the CWBData folders
+bool CMilatoCWBConverter::CreateCorpusFolders(){
+
+	cout << "Creating corpus folders  : " << endl << endl;
+
+
+	//Open a linux folders tree
+	char *dot[] = {const_cast<char *>(m_VrtFolderPath.data()), 0};
+	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
+	if (!tree) {
+		perror("fts_open");
+		return 1;
+	}
+
+	//Start working on every xml file in the input directory.
+	FTSENT *node;
+
+	string subCorpusPaths;
+	while ((node = fts_read(tree)))
+	{
+		if (node->fts_level > 0 && node->fts_name[0] == '.')
+			fts_set(tree, node, FTS_SKIP);
+		//If directory node - will delete it
+		else if ((node->fts_info & FTS_DP) && (node->fts_level == 1))
+		{
+			string sCorpusPath = m_CWBDataFolderPath + node->fts_name;
+
+			cout << "corpus folder : " << sCorpusPath << endl;
+			mkdir(sCorpusPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		}
 	}
 
