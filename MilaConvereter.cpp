@@ -467,11 +467,10 @@ bool CMilaConvereter::InitializeSuffixMap()
 string CMilaConvereter::GetPrefixConvertedString(string attribName, string attribValue)
 {
 	//Checking the prefix maps
-	// TODO : For debug purposes - Remove it when done
 	if (m_PrefixMap[attribName][attribValue]  == "")
 	{
 		cout << "Error finding Prefix attrib: " << attribName << " value: " << attribValue << endl;
-		assert(0);
+		return EMPTYATTRIB;
 	}
 
 	//cout << "Prefix attrib:" << attribName << " value:" << attribValue << " Translated: " << m_PrefixMap[attribName][attribValue] << endl;
@@ -481,11 +480,10 @@ string CMilaConvereter::GetPrefixConvertedString(string attribName, string attri
 
 string CMilaConvereter::GetBaseConvertedString(string attribName, string attribValue){
 	//Checking the Base maps
-	// TODO : For debug purposes - Remove it when done
 	if (m_BaseMap[attribName][attribValue]  == "")
 	{
 		cout << "Error finding Base attrib: " << attribName << " value: " << attribValue << endl;
-		assert(0);
+		return EMPTYATTRIB;
 	}
 
 	//cout << "Base attrib:" << attribName << " value:" << attribValue << " Translated: " << m_BaseMap[attribName][attribValue] << endl;
@@ -496,11 +494,10 @@ string CMilaConvereter::GetBaseConvertedString(string attribName, string attribV
 string CMilaConvereter::GetSuffixConvertedString(string attribName, string attribValue)
 {
 	//Checking the Suffix maps
-	// TODO : For debug purposes - Remove it when done
 	if (m_SuffixMap[attribName][attribValue]  == "")
 	{
 		cout << "Error finding Suffix attrib: " << attribName << " value: " << attribValue << endl;
-		assert(0);
+		return EMPTYATTRIB;
 	}
 
 	//cout << "Suffix attrib:" << attribName << " value:" << attribValue << " Translated: " << m_SuffixMap[attribName][attribValue] << endl;
