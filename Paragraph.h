@@ -14,8 +14,6 @@
 using namespace std;
 using namespace pugi;
 
-#define PARAGRAPH "paragraph"
-
 class CParagraph: public CMilaElement {
 public:
 	CParagraph(xml_node* doc, ofstream* out);

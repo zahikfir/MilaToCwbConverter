@@ -14,14 +14,6 @@
 using namespace std;
 using namespace pugi;
 
-#define ANALYSIS "analysis"
-#define PREFIX "prefix"
-#define BASE "base"
-#define SUFFIX "suffix"
-#define MAXPREFIX 6
-#define BASECELLS 13
-#define SUFFIXCELLS 1
-
 
 // PrefixNode class
 class CPrefixNode : public CMilaElement{

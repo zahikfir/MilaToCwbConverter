@@ -12,9 +12,9 @@
 #include <string>
 #include <assert.h>
 #include <map>
+#include "CustomDefinitions.h"
 
 using namespace std;
-#define EMPTYATTRIB "|"
 
 typedef map< string, string > MapStringString;
 

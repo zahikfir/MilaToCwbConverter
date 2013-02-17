@@ -12,16 +12,13 @@
 #include <fstream>
 #include <string.h>
 #include <string>
+#include <stdlib.h>
 #include "pugixml-1.2/pugixml.hpp"
 #include "pugixml-1.2/pugiconfig.hpp"
 #include "MilaConvereter.h"
 
 using namespace std;
 using namespace pugi;
-
-#define MILAELEMENT "milaElement"
-#define EMPTYCELL "~"
-#define EMPTYATTRIB "|"
 
 class CMilaElement {
 public:

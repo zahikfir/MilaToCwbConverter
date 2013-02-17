@@ -14,8 +14,6 @@
 using namespace std;
 using namespace pugi;
 
-#define TOKEN "token"
-
 class CToken : public CMilaElement {
 public:
 	CToken(xml_node* doc, ofstream* out);

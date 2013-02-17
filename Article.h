@@ -14,8 +14,6 @@
 using namespace std;
 using namespace pugi;
 
-#define ARTICLE "article"
-
 class CArticle :public CMilaElement {
 public:
 	CArticle(xml_node* doc, ofstream* out);

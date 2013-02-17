@@ -15,8 +15,6 @@
 using namespace std;
 using namespace pugi;
 
-#define CORPUS "corpus"
-
 class CCorpus:public CMilaElement{
 public:
 	CCorpus(xml_node* doc ,ofstream* out, string currentFolder);

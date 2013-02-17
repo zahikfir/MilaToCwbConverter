@@ -14,8 +14,6 @@
 using namespace std;
 using namespace pugi;
 
-#define SENTENCE "sentence"
-
 class CSentence : public CMilaElement {
 public:
 	CSentence(xml_node* doc, ofstream* out);
