@@ -38,6 +38,10 @@ bool CToken::Parse(){
 		*m_out << endl;
 
 	}
+	else
+	{
+		cout<< endl << "There is no analysis chosen" << endl;
+	}
 
 
 	//Finish parse
@@ -45,5 +49,42 @@ bool CToken::Parse(){
 }
 
 xml_node CToken::FindCorrectAnalysis(){
-	return m_doc->find_child_by_attribute("score","1.0");
+
+	//Check if there is a correct analysis
+	xml_node correctAnalysisNode =  m_doc->find_child_by_attribute("score","1.0");
+
+	//If there is one correct analysis - return it
+	if (correctAnalysisNode)
+	{
+		return correctAnalysisNode;
+	}
+
+	//Finding a secondery analysis
+	cout << endl << "Finding a secondery analysis - for the word \""  << m_doc->attribute("surface").value() << "\"" << endl;
+
+	//Initialize the max score to be zero
+	double  maxScore = 0;
+
+	//get all the analysis nodes
+	xml_object_range<xml_node_iterator> AnalysisNodes = m_doc->children();
+
+	//iterate over the analysis nodes and save the analysis with the best score
+	//in case there is several analysis with the same max score - take the first analysis with this score
+	for (xml_node_iterator analysisIter = AnalysisNodes.begin(); analysisIter != AnalysisNodes.end(); analysisIter++)
+	{
+		//Get the current analysis score
+		double currentScore = atof(analysisIter->attribute("score").value());
+
+		//if the current score is greater then the maxScore
+		if (currentScore > maxScore)
+		{
+			//Update the correctAnalysisNode to be the current analysis node
+			correctAnalysisNode = *analysisIter;
+			maxScore = currentScore;
+		}
+	}
+
+	//return the chosen analysis
+	return correctAnalysisNode;
+
 }
