@@ -385,7 +385,9 @@ bool CMilatoCWBConverter::CompressCorpus(){
 		{
 			//The corpus name
 			if (node->fts_level == 1){
-				string sMakeCommand = "cwb-make -V ";
+				string sMakeCommand = "cwb-make -r ";
+				sMakeCommand.insert(sMakeCommand.length(),m_CWBRegistryFolderPath);
+				sMakeCommand.insert(sMakeCommand.length()," -V ");
 				string sCurrentCorpus = node->fts_name;
 				transform(sCurrentCorpus.begin(),sCurrentCorpus.end(),sCurrentCorpus.begin(),::toupper);
 				sMakeCommand.insert(sMakeCommand.length(),sCurrentCorpus);
