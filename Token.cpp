@@ -60,10 +60,9 @@ xml_node CToken::FindCorrectAnalysis(){
 	}
 
 	//Finding a secondery analysis
-	cout << endl << "Finding a secondery analysis - for the word \""  << m_doc->attribute("surface").value() << "\"" << endl;
 
 	//Initialize the max score to be zero
-	double  maxScore = 0;
+	double  maxScore = -1;
 
 	//get all the analysis nodes
 	xml_object_range<xml_node_iterator> AnalysisNodes = m_doc->children();
