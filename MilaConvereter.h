@@ -8,15 +8,17 @@
 #ifndef MILACONVERETER_H_
 #define MILACONVERETER_H_
 
-#include <iostream>
-#include <string>
+#include "ErrorLogger.h"
 #include <assert.h>
 #include <map>
-#include "CustomDefinitions.h"
+
+
 
 using namespace std;
+using namespace pugi;
 
 typedef map< string, string > MapStringString;
+extern CErrorLogger* errorLogger;
 
 class CMilaConvereter {
 public:
@@ -25,9 +27,9 @@ public:
 
 	bool Initialize();
 
-	string GetPrefixConvertedString(string attribName, string attribValue);
-	string GetBaseConvertedString  (string attribName, string attribValue);
-	string GetSuffixConvertedString(string attribName, string attribValue);
+	string GetPrefixConvertedString(string attribName, string attribValue, xml_node* node);
+	string GetBaseConvertedString  (string attribName, string attribValue, xml_node* node);
+	string GetSuffixConvertedString(string attribName, string attribValue, xml_node* node);
 
 private:
 

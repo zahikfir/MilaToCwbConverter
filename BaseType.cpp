@@ -71,11 +71,26 @@ bool CBaseType::Parse(xml_node* node, ofstream* out){
 		m_BaseFunctionsMap[node->name()](node, out);
 	else {
 
-		cout << endl << "Created an empty base type for  " ;
-		for (int i = 0; i < 12 /* Base Cells -lexiconitem cell*/; i++)
+		errorLogger->PrintError("Created an empty base type for node  " , node);
+
+		for (int i = 0; i < BASE_CELLS - 1 /* Base Cells -lexiconitem cell*/; i++)
 		{
-			*out << EMPTYCELL << "\t";
+			//if we need to print the base flags cell
+			if (i == (BASE_FLAGS_POSITION - 2)) //The first cell is the cell with the flags
+			{
+				//Print all the empty flags
+				for (int j = 0 ; j < BASE_FLAGS ; j++)
+					*out << EMPTYATTRIB;
+
+				//Move to the next cell
+				*out << "\t";
+			}
+			else
+			{
+				*out << EMPTYCELL << "\t";
+			}
 		}
+
 		return false;
 	}
 	return true;
@@ -88,7 +103,7 @@ bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultVa
 	if (attr) // if attribute exist print is value
 	{
 		if (print){
-			*out << m_Converter->GetBaseConvertedString(attrName, attr.value());
+			*out << m_Converter->GetBaseConvertedString(attrName, attr.value() , node);
 		}
 	}
 	if (!attr)
@@ -99,7 +114,7 @@ bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultVa
 		else // Not required
 		{
 			if (print){
-				*out << m_Converter->GetBaseConvertedString(attrName, defaultValue);
+				*out << m_Converter->GetBaseConvertedString(attrName, defaultValue , node);
 			}
 		}
 	}
@@ -147,7 +162,7 @@ bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defau
 		if (attr) // if attribute exist print is value
 		{
 			if (print){
-				*out << m_Converter->GetBaseConvertedString(typeName, attr.value());
+				*out << m_Converter->GetBaseConvertedString(typeName, attr.value() , node);
 			}
 		}
 		if (!attr)
@@ -158,7 +173,7 @@ bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defau
 			else // Not required
 			{
 				if (print){
-					*out << m_Converter->GetBaseConvertedString(typeName, defaultValue);
+					*out << m_Converter->GetBaseConvertedString(typeName, defaultValue , node);
 				}
 			}
 		}

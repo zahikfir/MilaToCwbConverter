@@ -8,14 +8,10 @@
 #define MILAELEMENT_H_
 
 
-#include <iostream>
-#include <fstream>
-#include <string.h>
-#include <string>
-#include <stdlib.h>
-#include "pugixml-1.2/pugixml.hpp"
-#include "pugixml-1.2/pugiconfig.hpp"
 #include "MilaConvereter.h"
+#include <stdlib.h>
+
+
 
 using namespace std;
 using namespace pugi;

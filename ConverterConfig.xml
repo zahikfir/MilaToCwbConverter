@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <configuration>
-	<MilaCorporaPath path="/media/haims/Volume 2/NLPLab/MilaCorpora/"/>
-	<VRTFolderPath path="/media/haims/Volume 2/NLPLab/PreEncodedCorpora/"/>
-	<CWBDataFolderPath path="/home/haims/NLPLab/Corpora/"/>
-	<CWBRegistryFolderPath path="/usr/local/share/cwb/registry/"/> 
+	<MilaCorporaPath path="The Path to the Input Mila Folder"/>
+	<VRTFolderPath path="The Path to the Vrt Temp Folder"/>
+	<CWBDataFolderPath path="The Path to the CWB Data Folder"/>
+	<CWBRegistryFolderPath path="The path to the CWB Registry folder"/> 
+	<ErrorLogger path="The Path to the Error Output Log"/>
 </configuration>

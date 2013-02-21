@@ -7,7 +7,10 @@
 
 #include "MilaElement.h"
 
+CErrorLogger* errorLogger;
+
 CMilaConvereter CMilaElement::milaConverter;
+
 
 CMilaElement::CMilaElement(xml_node* doc ,ofstream* out)  : m_doc(doc), m_out(out){
 	m_name = MILAELEMENT;

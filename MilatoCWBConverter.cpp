@@ -27,6 +27,9 @@ bool CMilatoCWBConverter::Init(){
 	//Load the file
 	xml_parse_result result = configdoc.load_file("ConverterConfig.xml");
 
+	//Error Logger file
+	string sErrorLogger;
+
 	//Check if the xml file is valid
 	if (result){
 		try {
@@ -45,6 +48,9 @@ bool CMilatoCWBConverter::Init(){
 			m_CWBRegistryFolderPath = ConfigurationNode.child("CWBRegistryFolderPath").attribute("path").value();
 			if (m_CWBRegistryFolderPath == "")
 				throw "CWBRegistryFolderPath" ;
+			sErrorLogger = ConfigurationNode.child("ErrorLogger").attribute("path").value();
+			if (sErrorLogger == "")
+				throw "ErrorLogger";
 		}
 		catch( char const* str ){
 		    cout << "Problem occurred with the node: " << str << endl;
@@ -55,6 +61,14 @@ bool CMilatoCWBConverter::Init(){
 		cout << "Can't open configuration file . Closing application" << endl;
 		return false;
 	}
+
+	//Init the Error Logger
+	errorLogger = new CErrorLogger();
+	if (!errorLogger->Init(sErrorLogger))
+	{
+		return false;
+	}
+
 	cout << "Initialized CMilaToCwbConverter from the configuration file successfully." << endl;
 	return true;
 }
@@ -66,6 +80,7 @@ void CMilatoCWBConverter::PrintConfigurationPaths(){
 	cout << "	VrtOutputFolder  : " << m_VrtFolderPath << endl;
 	cout << "	CWBDataFolder    : " << m_CWBDataFolderPath << endl;
 	cout << "	CWBRegistryFolder: " << m_CWBRegistryFolderPath << endl;
+	cout << "   ErrorLogger      : " << errorLogger->GetErrorFileString() << endl;
 }
 
 //Delete all the files in the vrt folder
@@ -152,6 +167,7 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 	{
 		if (node->fts_level > 0 && node->fts_name[0] == '.')
 			fts_set(tree, node, FTS_SKIP);
+
 		//If directory node - We will create this directory in the vrtfolder
 		else if (node->fts_info & FTS_D)
 		{
@@ -172,10 +188,16 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 
 			//Create the output folder
 			 string vrtPath = node->fts_accpath;
+
+			 //Update the Error Logger
+			 errorLogger->StartANewText(node->fts_accpath);
+
 			 vrtPath.replace(vrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_VrtFolderPath.data());
 
 			 cout << endl << "-----------------------------------------------------------------------------------------" << endl;
+
 			 cout << " --Start converting the output folder :" << vrtPath << endl << endl;
+
 			 mkdir(vrtPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 		}
@@ -186,6 +208,9 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 			//The absoulte path to the mila xml file including the name
 			string xmlName = node->fts_accpath;
 
+			//Updating the ErrorLoger
+			errorLogger->SetCurrentFile(xmlName);
+
 			//The name of the output vrt file
 			string outName = node->fts_name;
 			outName.replace(outName.find(".xml"),4,".vrt");
@@ -195,12 +220,6 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 			vrtPath.replace(vrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_VrtFolderPath.data());
 			vrtPath.replace(vrtPath.find(node->fts_name),outName.length(),"");
 
-			//Start Parsing this xml file
-			//cout << "=======================================================" << endl;
-			//cout << "Start Parsing " << xmlName << " to folder " << sCurrentFolder << " In path: "<< vrtPath << " and file " << outName << endl;
-
-			//Print a dot when starting to convert a file
-			cout << node->fts_name <<  " , " ;
 
 			//////////////////////////////////////////////////
 			//Loading document
@@ -229,7 +248,6 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 					{
 
 						//Start parsing the xml file into the outputfile
-						//cout << "Start parsing " << corpusNode.attribute("name").value() << endl;
 
 						//Create a corpus object
 						CCorpus corpus(&corpusNode,&outputFile, sCurrentFolder);
@@ -268,6 +286,9 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 	}
 
 	cout << endl;
+
+	//Close the errorLogger and the error file
+	delete errorLogger;
 
 	if (fts_close(tree)) {
 		perror("fts_close");

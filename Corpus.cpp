@@ -36,7 +36,7 @@ bool CCorpus::Parse(){
 	*m_out << "<a>" << endl << "<p>" << endl << "<s>" << endl;
 
 	//The dummy sentence
-	*m_out << "endText\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9" << endl;
+	*m_out << DUMMYSENTENCE << endl;
 
 	//Closing structural attributes
 	*m_out << "</s>" << endl << "</p>" << endl << "</a>" << endl;

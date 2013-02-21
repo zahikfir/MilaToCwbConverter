@@ -28,7 +28,6 @@ bool CToken::Parse(){
 		*m_out << m_doc->attribute("surface").value() << "\t";
 
 		//Print the correct analysis
-		//cout << "The correct analysis of token "<< m_doc->attribute("id").value() << " is " << correctAnalysisNode.attribute("id").value() << endl;
 
 		CAnalysis analysis(&correctAnalysisNode, m_out);
 		if (!analysis.Parse())
@@ -40,7 +39,7 @@ bool CToken::Parse(){
 	}
 	else
 	{
-		cout<< endl << "There is no analysis chosen" << endl;
+		errorLogger->PrintError("There is no analysis chosen" , m_doc);
 	}
 
 

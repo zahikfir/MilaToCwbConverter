@@ -8,18 +8,16 @@
 #ifndef MILATOCWBCONVERTER_H_
 #define MILATOCWBCONVERTER_H_
 
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
-#include "pugixml-1.2/pugixml.hpp"
-#include "pugixml-1.2/pugiconfig.hpp"
-#include <algorithm>
+#include "Corpus.h"
 #include <string>
+#include <string.h>
+#include <strings.h>
+#include <algorithm>
 #include <map>
 #include <fts.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "Corpus.h"
+
 
 using namespace std;
 using namespace pugi;

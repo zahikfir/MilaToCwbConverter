@@ -19,22 +19,15 @@ CSentence::~CSentence() {
 bool CSentence::Parse(){
 	//Parse the sentence Element
 
-	//cout << "Start Parsing sentence number " << m_doc->attribute("id").value() << endl;
-
-	int countTokens = 0;
-
 	for (xml_node node = m_doc->child(TOKEN);
 			node;
 			node = node.next_sibling(TOKEN))
 	{
-		countTokens ++;
 
 		CToken token(&node, m_out);
 		if (!token.Parse())
 			return false;
 	}
-
-	//cout << "Finished parsing sentence "<< m_doc->attribute("id").value() << " with " << countTokens << " tokens" << endl;
 
 
 	//Finish parse

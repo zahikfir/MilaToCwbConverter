@@ -29,7 +29,7 @@ bool CPrefixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 	if (attr) // if attribute exist print is value
 	{
 		if (print){
-			*m_out << milaConverter.GetPrefixConvertedString(attrName, attr.value());
+			*m_out << milaConverter.GetPrefixConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -40,7 +40,7 @@ bool CPrefixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 		else // Not required
 		{
 			if (print){
-				*m_out << milaConverter.GetPrefixConvertedString(attrName, defaultValue);
+				*m_out << milaConverter.GetPrefixConvertedString(attrName, defaultValue,node);
 			}
 		}
 	}
@@ -92,7 +92,7 @@ bool CBaseNode::ParseAttrib(char_t* attrName, bool required, char* defaultValue,
 	if (attr) // if attribute exist print is value
 	{
 		if (print){
-			*m_out << milaConverter.GetBaseConvertedString(attrName, attr.value());
+			*m_out << milaConverter.GetBaseConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -103,7 +103,7 @@ bool CBaseNode::ParseAttrib(char_t* attrName, bool required, char* defaultValue,
 		else // Not required
 		{
 			if (print){
-				*m_out << milaConverter.GetBaseConvertedString(attrName, defaultValue);
+				*m_out << milaConverter.GetBaseConvertedString(attrName, defaultValue , node);
 			}
 		}
 	}
@@ -125,7 +125,9 @@ bool CBaseNode::Parse(){
 
 	if (!m_BaseTypeHelper->Parse(&node, m_out))
 	{
-		cout << " lexiconItem : " << m_doc->attribute("lexiconItem").value();
+		string error = m_doc->attribute("lexiconItem").value();
+		error.insert(0,"For lexiconItem : ");
+		errorLogger->PrintError( error, &node);
 		return false;
 	}
 
@@ -154,7 +156,7 @@ bool CSuffixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 	if (attr) // if attribute exist print is value
 	{
 		if (print){
-			*m_out << milaConverter.GetSuffixConvertedString(attrName, attr.value());
+			*m_out << milaConverter.GetSuffixConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -165,7 +167,7 @@ bool CSuffixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 		else // Not required
 		{
 			if (print){
-				*m_out << milaConverter.GetSuffixConvertedString(attrName, defaultValue);
+				*m_out << milaConverter.GetSuffixConvertedString(attrName, defaultValue,node);
 			}
 		}
 	}
@@ -198,11 +200,13 @@ CAnalysis::~CAnalysis() {
 }
 
 bool CAnalysis::Parse(){
+
+
 	//Parse all prefixes
 	int nPrefixCounter = 0;
 
 	for (xml_node prefixNode = m_doc->child("prefix");
-			prefixNode && (nPrefixCounter < MAXPREFIX);
+			prefixNode && (nPrefixCounter < MAX_PREFIX);
 			prefixNode = prefixNode.next_sibling("prefix") , nPrefixCounter++)
 	{
 		CPrefixNode prefix(&prefixNode, m_out);
@@ -210,26 +214,54 @@ bool CAnalysis::Parse(){
 			return false;
 	}
 
-	for (;nPrefixCounter < MAXPREFIX; nPrefixCounter++)
+	//Print all the missing cells
+	for (;nPrefixCounter < MAX_PREFIX; nPrefixCounter++)
 	{
-		*m_out << EMPTYCELL << "\t";
+		//Print all the empty flags
+		for (int j = 0 ; j < PREFIX_FLAGS ; j++)
+			*m_out << EMPTYATTRIB;
+
+		//Move to the next cell
+		*m_out << "\t";
 	}
 
 
-
+	////////////////////////////////////////////////////////////////
 	//Parse the base node
 	xml_node baseNode = m_doc->child("base");
 	if (baseNode)
 	{
 		CBaseNode base(&baseNode, m_out);
 		if (!base.Parse())
-			cout << "in analysis node : " << m_doc->attribute("id").value() << endl;
+		{
+			string error = m_doc->attribute("id").value();
+			error.insert(0,"in analysis node : ");
+			errorLogger->PrintError( error , m_doc);
+		}
 	}
-	else {
-		for (int i = 0; i < BASECELLS; i++)
-			*m_out << EMPTYCELL << "\t";
+	//There is no base node and we need to print empty cells
+	else
+	{
+		for (int i = 0; i < BASE_CELLS; i++)
+		{
+			//if we need to print the base flags cell
+			if (i == (BASE_FLAGS_POSITION - 1)) //The second cell is the cell with the flags
+			{
+				//Print all the empty flags
+				for (int j = 0 ; j < BASE_FLAGS ; j++)
+					*m_out << EMPTYATTRIB;
+
+				//Move to the next cell
+				*m_out << "\t";
+			}
+			else
+			{
+				*m_out << EMPTYCELL << "\t";
+			}
+		}
 	}
 
+	////////////////////////////////////////////////////////////////
 	//Parse the suffix node
 	xml_node suffixNode = m_doc->child("suffix");
 	if (suffixNode)
@@ -238,8 +270,17 @@ bool CAnalysis::Parse(){
 		suffix.Parse();
 	}
 	else {
-		for (int i = 0; i < SUFFIXCELLS; i++)
-			*m_out << EMPTYCELL;
+
+		//Print all the missing cells
+		for (int i = 0; i < SUFFIX_CELLS; i++)
+		{
+			//Print the Empty Flags
+			for (int j = 0 ; j < SUFFIX_FLAGS ; j++)
+				*m_out << EMPTYATTRIB ;
+
+			//Move to the next cell
+			*m_out << "\t";
+		}
 	}
 
 	return true;

@@ -464,43 +464,43 @@ bool CMilaConvereter::InitializeSuffixMap()
 	return true;
 }
 
-string CMilaConvereter::GetPrefixConvertedString(string attribName, string attribValue)
+string CMilaConvereter::GetPrefixConvertedString(string attribName, string attribValue ,xml_node* node)
 {
 	//Checking the prefix maps
 	if (m_PrefixMap[attribName][attribValue]  == "")
 	{
-		cout << "Error finding Prefix attrib: " << attribName << " value: " << attribValue << endl;
+		errorLogger->PrintError("Error finding Prefix attrib: " + attribName + " value: " + attribValue ,
+				node);
 		return EMPTYATTRIB;
 	}
 
-	//cout << "Prefix attrib:" << attribName << " value:" << attribValue << " Translated: " << m_PrefixMap[attribName][attribValue] << endl;
 	//Return the converted string
 	return m_PrefixMap[attribName][attribValue];
 }
 
-string CMilaConvereter::GetBaseConvertedString(string attribName, string attribValue){
+string CMilaConvereter::GetBaseConvertedString(string attribName, string attribValue, xml_node* node){
 	//Checking the Base maps
 	if (m_BaseMap[attribName][attribValue]  == "")
 	{
-		cout << "Error finding Base attrib: " << attribName << " value: " << attribValue << endl;
+		errorLogger->PrintError("Error finding Base attrib: " + attribName + " value: " + attribValue ,
+						node);
 		return EMPTYATTRIB;
 	}
 
-	//cout << "Base attrib:" << attribName << " value:" << attribValue << " Translated: " << m_BaseMap[attribName][attribValue] << endl;
 	//Return the converted string
 	return m_BaseMap[attribName][attribValue];
 }
 
-string CMilaConvereter::GetSuffixConvertedString(string attribName, string attribValue)
+string CMilaConvereter::GetSuffixConvertedString(string attribName, string attribValue , xml_node* node)
 {
 	//Checking the Suffix maps
 	if (m_SuffixMap[attribName][attribValue]  == "")
 	{
-		cout << "Error finding Suffix attrib: " << attribName << " value: " << attribValue << endl;
+		errorLogger->PrintError("Error finding Suffix attrib: " + attribName + " value: " + attribValue ,
+						node);
 		return EMPTYATTRIB;
 	}
 
-	//cout << "Suffix attrib:" << attribName << " value:" << attribValue << " Translated: " << m_SuffixMap[attribName][attribValue] << endl;
 	//Return the converted string
 	return m_SuffixMap[attribName][attribValue];
 }
