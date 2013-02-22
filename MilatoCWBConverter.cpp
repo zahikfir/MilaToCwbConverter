@@ -123,7 +123,7 @@ bool CMilatoCWBConverter::CleanTheVrtFolder(){
 				sRemoveCommand.replace(sRemoveCommand.find(from), from.length(), to);
 			}
 
-			sRemoveCommand.insert(0, "rm -r ");
+			sRemoveCommand =  "rm -r " + sRemoveCommand;
 
 			cout << "Removing folder : " << sRemoveCommand << endl;
 
@@ -162,21 +162,32 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 	//A place holder for the currnet folder
 	//Every vrt file will have is current folder string as the value of the id attribute of the text node
 	string sCurrentFolder;
+	string sCurrentCorpusName;
 
 	while ((node = fts_read(tree)))
 	{
+
+
 		if (node->fts_level > 0 && node->fts_name[0] == '.')
 			fts_set(tree, node, FTS_SKIP);
 
 		//If directory node - We will create this directory in the vrtfolder
 		else if (node->fts_info & FTS_D)
 		{
+			//A corpus name folder
+			if (node->fts_level == 1)
+			{
+				//Save the corpus name for the id attribute of the text
+				sCurrentCorpusName = node->fts_name;
+			}
+
 			//Saves the current folder
 			sCurrentFolder = node->fts_name;
 
 			//Check if the name is valid (a valid c variable name)
 			//Add a prefix of t(text) to the value
-			sCurrentFolder.insert(0,"t");
+			sCurrentFolder = "t_" + sCurrentCorpusName + "_" + sCurrentFolder;
+
 
 			//Replace all occurences of "-" with "_"
 			string from = "-";
@@ -236,7 +247,7 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 				//If valid
 
 				//Create writing file stream
-				outName.insert(0, vrtPath.data());
+				outName = vrtPath + outName;
 				ofstream outputFile(outName.data());
 
 
@@ -328,14 +339,14 @@ bool CMilatoCWBConverter::EncodeVrtToCWB(){
 			//The corpus name
 			if (node->fts_level == 1){
 				string sEncodeCommand = "cwb-encode -c utf8 -d ";
-				sEncodeCommand.insert(sEncodeCommand.length(),m_CWBDataFolderPath);
-				sEncodeCommand.insert(sEncodeCommand.length(),node->fts_name);
-				sEncodeCommand.insert(sEncodeCommand.length(),subCorpusPaths);
-				sEncodeCommand.insert(sEncodeCommand.length()," -R ");
-				sEncodeCommand.insert(sEncodeCommand.length(),m_CWBRegistryFolderPath);
-				sEncodeCommand.insert(sEncodeCommand.length(),node->fts_name);
-				sEncodeCommand.insert(sEncodeCommand.length(),
-				" -P prefix1 -P prefix2 -P prefix3 -P prefix4 -P prefix5 -P prefix6 -P lexiconitem -P base -P expansion -P function -P root -P subcoordinating -P mood -P value -P id -P pos -P consecutive -P multiword -P type -P suffix -S a -S p -S s -S text:0+id 2>&1");
+				sEncodeCommand = sEncodeCommand + m_CWBDataFolderPath;
+				sEncodeCommand = sEncodeCommand + node->fts_name;
+				sEncodeCommand = sEncodeCommand + subCorpusPaths;
+				sEncodeCommand = sEncodeCommand + " -R ";
+				sEncodeCommand = sEncodeCommand + m_CWBRegistryFolderPath;
+				sEncodeCommand = sEncodeCommand + node->fts_name;
+				sEncodeCommand = sEncodeCommand +
+				" -P prefix1 -P prefix2 -P prefix3 -P prefix4 -P prefix5 -P prefix6 -P lexiconitem -P base -P expansion -P function -P root -P subcoordinating -P mood -P value -P id -P pos -P consecutive -P multiword -P type -P suffix -S a -S p -S s -S text:0+id 2>&1";
 
 				cout << "Executing encode command : " << endl << endl;
 				cout << sEncodeCommand << endl;
@@ -361,9 +372,9 @@ bool CMilatoCWBConverter::EncodeVrtToCWB(){
 					sCurrentPath.replace(sCurrentPath.find(from), from.length(), to);
 				}
 
-				sCurrentPath.insert(0," -F ");
+				sCurrentPath = " -F " + sCurrentPath;
 
-				subCorpusPaths.insert(0, sCurrentPath.data());
+				subCorpusPaths = sCurrentPath + subCorpusPaths;
 
 			}
 		}
@@ -407,11 +418,11 @@ bool CMilatoCWBConverter::CompressCorpus(){
 			//The corpus name
 			if (node->fts_level == 1){
 				string sMakeCommand = "cwb-make -r ";
-				sMakeCommand.insert(sMakeCommand.length(),m_CWBRegistryFolderPath);
-				sMakeCommand.insert(sMakeCommand.length()," -V ");
+				sMakeCommand = sMakeCommand + m_CWBRegistryFolderPath;
+				sMakeCommand = sMakeCommand + " -V ";
 				string sCurrentCorpus = node->fts_name;
 				transform(sCurrentCorpus.begin(),sCurrentCorpus.end(),sCurrentCorpus.begin(),::toupper);
-				sMakeCommand.insert(sMakeCommand.length(),sCurrentCorpus);
+				sMakeCommand = sMakeCommand + sCurrentCorpus;
 
 				cout << "Executing make command : " << endl << endl;
 				cout << sMakeCommand << endl << endl;
@@ -466,6 +477,108 @@ bool CMilatoCWBConverter::CreateCorpusFolders(){
 	}
 
 	cout << endl;
+
+	if (fts_close(tree)) {
+		perror("fts_close");
+		return false;
+	}
+
+	return true;
+}
+
+//Create a Container Corpus which build by all the corpora in the vrt folder
+bool CMilatoCWBConverter::CreateAContainerCorpus(){
+	cout << endl;
+	cout << "----------------------------" << endl;
+	cout << "Creating a container corpus" << endl;
+	cout << "----------------------------" << endl << endl;
+
+	//Crating corpus folder
+	string sCorpusPath = m_CWBDataFolderPath + CCONATINER_CORPUS_NAME;
+
+	cout << "creating corpus folder : " << sCorpusPath << endl;
+	mkdir(sCorpusPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+	//Open a linux folders tree
+	char *dot[] = {const_cast<char *>(m_VrtFolderPath.data()), 0};
+	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
+	if (!tree) {
+		perror("fts_open");
+		return 1;
+	}
+
+	//Start working on every xml file in the input directory.
+	FTSENT *node;
+
+	string subCorpusPaths;
+	while ((node = fts_read(tree)))
+	{
+		if (node->fts_level > 0 && node->fts_name[0] == '.')
+			fts_set(tree, node, FTS_SKIP);
+		//If directory node - will delete it
+		else if ((node->fts_info & FTS_DP) && (node->fts_level >= 0))
+		{
+
+
+			if (node->fts_level == 0){
+
+				//Create the encodeing command
+
+				string sEncodeCommand = "cwb-encode -c utf8 -d ";
+				sEncodeCommand = sEncodeCommand + m_CWBDataFolderPath;
+				sEncodeCommand = sEncodeCommand + CCONATINER_CORPUS_NAME;
+				sEncodeCommand = sEncodeCommand + subCorpusPaths;
+				sEncodeCommand = sEncodeCommand + " -R ";
+				sEncodeCommand = sEncodeCommand + m_CWBRegistryFolderPath;
+				sEncodeCommand = sEncodeCommand + CCONATINER_CORPUS_NAME;
+				sEncodeCommand = sEncodeCommand +
+				" -P prefix1 -P prefix2 -P prefix3 -P prefix4 -P prefix5 -P prefix6 -P lexiconitem -P base -P expansion -P function -P root -P subcoordinating -P mood -P value -P id -P pos -P consecutive -P multiword -P type -P suffix -S a -S p -S s -S text:0+id 2>&1";
+
+				cout << "Executing encode command : " << endl << endl;
+				cout << sEncodeCommand << endl;
+
+				system(sEncodeCommand.data());
+
+				//Create the compress
+				string sMakeCommand = "cwb-make -r ";
+				sMakeCommand = sMakeCommand + m_CWBRegistryFolderPath;
+				sMakeCommand = sMakeCommand + " -V ";
+				string sCurrentCorpus = CCONATINER_CORPUS_NAME;
+				transform(sCurrentCorpus.begin(),sCurrentCorpus.end(),sCurrentCorpus.begin(),::toupper);
+				sMakeCommand = sMakeCommand +  sCurrentCorpus;
+
+				cout << "Executing make command : " << endl << endl;
+				cout << sMakeCommand << endl << endl;
+
+				system(sMakeCommand.data());
+
+			}
+			// -F paths
+			else if (node->fts_level > 1){
+				string sCurrentPath = node->fts_accpath;
+
+				//Replace all occurences of " " with "\ "
+				string from = " ";
+				string to = "\\~\\";
+				while(sCurrentPath.find(from) != std::string::npos) {
+					sCurrentPath.replace(sCurrentPath.find(from), from.length(), to);
+				}
+
+				from = "~\\";
+				to = " ";
+				while(sCurrentPath.find(from) != std::string::npos) {
+					sCurrentPath.replace(sCurrentPath.find(from), from.length(), to);
+				}
+
+				sCurrentPath = " -F " + sCurrentPath;
+
+				subCorpusPaths = sCurrentPath + subCorpusPaths;
+
+			}
+		}
+	}
+
+	cout << endl << endl;
 
 	if (fts_close(tree)) {
 		perror("fts_close");

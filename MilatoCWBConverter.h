@@ -45,6 +45,9 @@ public:
 	//Run the cwb-make on each corpus in the vrt folder
 	bool CompressCorpus();
 
+	//Create a Container Corpus which build by all the corpora in the vrt folder
+	bool CreateAContainerCorpus();
+
 private:
 
 	//Create the corpus folders in the CWBData folders

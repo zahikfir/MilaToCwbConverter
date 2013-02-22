@@ -17,6 +17,8 @@
 
 //Global Definitions File
 
+#define CCONATINER_CORPUS_NAME "all"
+
 #define EMPTYCELL "N"
 #define EMPTYATTRIB "N"
 
