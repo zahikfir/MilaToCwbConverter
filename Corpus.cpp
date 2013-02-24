@@ -7,9 +7,11 @@
 
 #include "Corpus.h"
 
-CCorpus::CCorpus(xml_node* doc, ofstream* out, string currentFolder) :CMilaElement(doc, out) {
+CCorpus::CCorpus(xml_node* doc, ofstream* out, ofstream* containerOut,string currentFolder ,string containerTextId)
+:CMilaElement(doc, out, containerOut) {
 	m_name = CORPUS;
-	*m_out << "<text id=\"" << currentFolder << "\">" << endl;
+    *m_out << "<text id=\"" << currentFolder << "\">" << endl;
+	*m_ContainerOut << "<text id=\"" << containerTextId << "\">" << endl;
 }
 
 CCorpus::~CCorpus() {
@@ -22,7 +24,7 @@ bool CCorpus::Parse(){
 			node;
 			node = node.next_sibling(ARTICLE))
 	{
-		CArticle article(&node, m_out);
+		CArticle article(&node, m_out , m_ContainerOut);
 
 		if (!article.Parse())
 			return false;
@@ -34,15 +36,19 @@ bool CCorpus::Parse(){
 
 	//Structural attributes
 	*m_out << "<a>" << endl << "<p>" << endl << "<s>" << endl;
+	*m_ContainerOut << "<a>" << endl << "<p>" << endl << "<s>" << endl;
 
 	//The dummy sentence
 	*m_out << DUMMYSENTENCE << endl;
+	*m_ContainerOut << DUMMYSENTENCE << endl;
 
 	//Closing structural attributes
 	*m_out << "</s>" << endl << "</p>" << endl << "</a>" << endl;
+	*m_ContainerOut << "</s>" << endl << "</p>" << endl << "</a>" << endl;
 
 	//Closing the text file
 	*m_out << "</text>" << endl;
+	*m_ContainerOut << "</text>" << endl;
 
 	//Finish parse
 	return true;

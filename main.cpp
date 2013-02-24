@@ -42,14 +42,13 @@ int main(int argc, char **argv) {
 	while (choice != 9)
 	{
 		//Print the options
-		cout << "1. Clean the vrt folder , Convert the data in the mila folder to vrt's and store it in the vrt folder" << endl;
+		cout << "1. Convert the data in the mila folder to vrt's and store it in the vrt folder and container folder" << endl;
 		cout << "2. Encode and compress the data located in the vrt folder to CWB" << endl;
-		cout << "3. Create a Container Corpus which build by all the corpora in the vrt folder" << endl;
-		cout << "4. Clean The vrt folder" << endl;
-		cout << "5. Execute options 1 and 2" << endl;
-		cout << "6. Execute options 1 , 2 and 3" << endl;
-		cout << "7  Execute options 1 , 2 and 4" << endl;
-		cout << "8  Execute options 1 , 2 ,3 and 4" << endl;
+		cout << "3. Create a Container Corpus which build by all the corpora in the container vrt folder" << endl;
+		cout << "4. Execute options 1 and 2" << endl;
+		cout << "5. Execute options 1 , 2 and 3" << endl;
+		cout << "6  Clean the main vrt folder" << endl;
+		cout << "7  Clean the Container vrt folder" << endl;
 		cout << "9. Exit the program" << endl;
 
 		//Get the user's choice
@@ -60,7 +59,6 @@ int main(int argc, char **argv) {
 		switch (choice)
 		{
 		case 1:
-			mainConverter.CleanTheVrtFolder();
 			mainConverter.ConvertFromMilaToVrt();
 			break;
 		case 2:
@@ -71,35 +69,21 @@ int main(int argc, char **argv) {
 			mainConverter.CreateAContainerCorpus();
 			break;
 		case 4:
-			mainConverter.CleanTheVrtFolder();
-			break;
-		case 5:
-			mainConverter.CleanTheVrtFolder();
 			mainConverter.ConvertFromMilaToVrt();
 			mainConverter.EncodeVrtToCWB();
 			mainConverter.CompressCorpus();
+			break;
+		case 5:
+			mainConverter.ConvertFromMilaToVrt();
+			mainConverter.EncodeVrtToCWB();
+			mainConverter.CompressCorpus();
+			mainConverter.CreateAContainerCorpus();
 			break;
 		case 6:
 			mainConverter.CleanTheVrtFolder();
-			mainConverter.ConvertFromMilaToVrt();
-			mainConverter.EncodeVrtToCWB();
-			mainConverter.CompressCorpus();
-			mainConverter.CreateAContainerCorpus();
 			break;
 		case 7:
-			mainConverter.CleanTheVrtFolder();
-			mainConverter.ConvertFromMilaToVrt();
-			mainConverter.EncodeVrtToCWB();
-			mainConverter.CompressCorpus();
-			mainConverter.CleanTheVrtFolder();
-			break;
-		case 8:
-			mainConverter.CleanTheVrtFolder();
-			mainConverter.ConvertFromMilaToVrt();
-			mainConverter.EncodeVrtToCWB();
-			mainConverter.CompressCorpus();
-			mainConverter.CreateAContainerCorpus();
-			mainConverter.CleanTheVrtFolder();
+			mainConverter.CleanTheContainerVrtFolder();
 			break;
 		case 9:
 			break;

@@ -16,7 +16,7 @@ using namespace pugi;
 
 class CSentence : public CMilaElement {
 public:
-	CSentence(xml_node* doc, ofstream* out);
+	CSentence(xml_node* doc, ofstream* out , ofstream* containerOut);
 	virtual ~CSentence();
 	virtual bool Parse();
 };

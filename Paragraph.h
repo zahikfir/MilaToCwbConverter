@@ -16,7 +16,7 @@ using namespace pugi;
 
 class CParagraph: public CMilaElement {
 public:
-	CParagraph(xml_node* doc, ofstream* out);
+	CParagraph(xml_node* doc, ofstream* out  , ofstream* containerOut);
 	virtual ~CParagraph();
 	virtual bool Parse();
 };

@@ -18,7 +18,7 @@ using namespace pugi;
 
 class CMilaElement {
 public:
-	CMilaElement(xml_node* doc ,ofstream* out);
+	CMilaElement(xml_node* doc ,ofstream* out , ofstream* containerOut);
 	virtual ~CMilaElement();
 
 	//Initialize CMilaConverter
@@ -44,6 +44,9 @@ protected:
 
 	//Reference to the output file handler
 	ofstream* m_out;
+
+	//Reference to the conainer output file handler
+	ofstream* m_ContainerOut;
 
 	//Node specifier
 	string m_name;

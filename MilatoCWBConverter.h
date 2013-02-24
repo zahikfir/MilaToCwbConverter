@@ -36,6 +36,9 @@ public:
 	//Delete all the files in the vrt folder
 	bool CleanTheVrtFolder();
 
+	//Delete all the files in the container vrt folder
+	bool CleanTheContainerVrtFolder();
+
 	//Convert all the mila xml's to vrt files and store them in the vrt folder
 	bool ConvertFromMilaToVrt();
 
@@ -55,6 +58,7 @@ private:
 
 	string m_MilaFolderPath;
 	string m_VrtFolderPath;
+	string m_ContainerVRTFolderPath;
 	string m_CWBDataFolderPath;
 	string m_CWBRegistryFolderPath;
 };

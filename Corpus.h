@@ -17,7 +17,7 @@ using namespace pugi;
 
 class CCorpus:public CMilaElement{
 public:
-	CCorpus(xml_node* doc ,ofstream* out, string currentFolder);
+	CCorpus(xml_node* doc ,ofstream* out, ofstream* containerOut ,string currentFolder, string containerTextId);
 	virtual ~CCorpus();
 	virtual bool Parse();
 };

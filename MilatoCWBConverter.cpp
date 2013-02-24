@@ -42,6 +42,9 @@ bool CMilatoCWBConverter::Init(){
 			m_VrtFolderPath = ConfigurationNode.child("VRTFolderPath").attribute("path").value();
 			if (m_VrtFolderPath == "")
 				throw "VRTFolderPath" ;
+			m_ContainerVRTFolderPath = ConfigurationNode.child("ContainerCorpusVRTFolder").attribute("path").value();
+			if (m_ContainerVRTFolderPath == "")
+				throw "ContainerVRTFolderPath";
 			m_CWBDataFolderPath = ConfigurationNode.child("CWBDataFolderPath").attribute("path").value();
 			if (m_CWBDataFolderPath == "")
 				throw "CWBDataFolderPath" ;
@@ -75,12 +78,13 @@ bool CMilatoCWBConverter::Init(){
 
 //Print the current configuration paths
 void CMilatoCWBConverter::PrintConfigurationPaths(){
-	cout << "Configuration Paths : " << endl;
-	cout << "	MilaInputFolder  : " << m_MilaFolderPath << endl;
-	cout << "	VrtOutputFolder  : " << m_VrtFolderPath << endl;
-	cout << "	CWBDataFolder    : " << m_CWBDataFolderPath << endl;
-	cout << "	CWBRegistryFolder: " << m_CWBRegistryFolderPath << endl;
-	cout << "   ErrorLogger      : " << errorLogger->GetErrorFileString() << endl;
+	cout << "Configuration Paths        : " << endl;
+	cout << "	MilaInputFolder         : " << m_MilaFolderPath << endl;
+	cout << "	VrtOutputFolder         : " << m_VrtFolderPath << endl;
+	cout << "   ContainerVrtOutputFolder: " << m_ContainerVRTFolderPath << endl;
+	cout << "	CWBDataFolder           : " << m_CWBDataFolderPath << endl;
+	cout << "	CWBRegistryFolder       : " << m_CWBRegistryFolderPath << endl;
+	cout << "   ErrorLogger             : " << errorLogger->GetErrorFileString() << endl;
 }
 
 //Delete all the files in the vrt folder
@@ -92,6 +96,63 @@ bool CMilatoCWBConverter::CleanTheVrtFolder(){
 
 	//Open a linux folders tree
 	char *dot[] = {const_cast<char *>(m_VrtFolderPath.data()), 0};
+	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
+	if (!tree) {
+		perror("fts_open");
+		return 1;
+	}
+
+	//Start working on every xml file in the input directory.
+	FTSENT *node;
+
+	while ((node = fts_read(tree)))
+	{
+		if (node->fts_level > 0 && node->fts_name[0] == '.')
+			fts_set(tree, node, FTS_SKIP);
+		//If directory node - will delete it
+		else if ((node->fts_info & FTS_DP) && (node->fts_level > 0))
+		{
+			string sRemoveCommand = node->fts_accpath;
+
+			//Replace all occurences of " " with "\ "
+			string from = " ";
+			string to = "\\~\\";
+			while(sRemoveCommand.find(from) != std::string::npos) {
+				sRemoveCommand.replace(sRemoveCommand.find(from), from.length(), to);
+			}
+
+			from = "~\\";
+			to = " ";
+			while(sRemoveCommand.find(from) != std::string::npos) {
+				sRemoveCommand.replace(sRemoveCommand.find(from), from.length(), to);
+			}
+
+			sRemoveCommand =  "rm -r " + sRemoveCommand;
+
+			cout << "Removing folder : " << sRemoveCommand << endl;
+
+			system(sRemoveCommand.data());
+		}
+	}
+
+	cout << endl;
+
+	if (fts_close(tree)) {
+		perror("fts_close");
+		return false;
+	}
+
+	return true;
+}
+
+//Delete all the files in the container vrt folder
+bool CMilatoCWBConverter::CleanTheContainerVrtFolder(){
+	cout << "-----------------------------------" << endl;
+	cout << " Cleaning The Container Vrt Folder " << endl;
+	cout << "-----------------------------------" << endl << endl;
+
+	//Open a linux folders tree
+	char *dot[] = {const_cast<char *>(m_ContainerVRTFolderPath.data()), 0};
 	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
 	if (!tree) {
 		perror("fts_open");
@@ -161,8 +222,13 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 
 	//A place holder for the currnet folder
 	//Every vrt file will have is current folder string as the value of the id attribute of the text node
-	string sCurrentFolder;
+	string sVrtTextID;
+	string sContainerVrtTextID;
 	string sCurrentCorpusName;
+
+	//Initialize the mila converter helper class
+	CCorpus::milaConverter.Initialize();
+
 
 	while ((node = fts_read(tree)))
 	{
@@ -179,31 +245,53 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 			{
 				//Save the corpus name for the id attribute of the text
 				sCurrentCorpusName = node->fts_name;
+				sContainerVrtTextID = "t_" + sCurrentCorpusName;
+
+				//Replace all occurences of "-" with "_"
+				string from = "-";
+				string to = "_";
+				while(sContainerVrtTextID.find(from) != std::string::npos) {
+					sContainerVrtTextID.replace(sContainerVrtTextID.find(from), from.length(), to);
+				}
 			}
 
 			//Saves the current folder
-			sCurrentFolder = node->fts_name;
+			sVrtTextID = node->fts_name;
 
 			//Check if the name is valid (a valid c variable name)
 			//Add a prefix of t(text) to the value
-			sCurrentFolder = "t_" + sCurrentCorpusName + "_" + sCurrentFolder;
+			sVrtTextID = "t_" + sCurrentCorpusName + "_" + sVrtTextID;
 
 
 			//Replace all occurences of "-" with "_"
 			string from = "-";
 			string to = "_";
-			while(sCurrentFolder.find(from) != std::string::npos) {
-				sCurrentFolder.replace(sCurrentFolder.find(from), from.length(), to);
+			while(sVrtTextID.find(from) != std::string::npos) {
+				sVrtTextID.replace(sVrtTextID.find(from), from.length(), to);
 			}
 
+			//Create the output folders
 
-			//Create the output folder
+			//First for the main vrt path
+
 			 string vrtPath = node->fts_accpath;
 
 			 //Update the Error Logger
 			 errorLogger->StartANewText(node->fts_accpath);
 
 			 vrtPath.replace(vrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_VrtFolderPath.data());
+
+			 cout << endl << "-----------------------------------------------------------------------------------------" << endl;
+
+			 cout << " --Start converting the output folder :" << vrtPath << endl << endl;
+
+			 mkdir(vrtPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+			 //Second for the Container vrt path
+
+			 vrtPath = node->fts_accpath;
+
+			 vrtPath.replace(vrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_ContainerVRTFolderPath.data());
 
 			 cout << endl << "-----------------------------------------------------------------------------------------" << endl;
 
@@ -231,6 +319,10 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 			vrtPath.replace(vrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_VrtFolderPath.data());
 			vrtPath.replace(vrtPath.find(node->fts_name),outName.length(),"");
 
+			//The path to the container output file
+			string containerVrtPath = xmlName.data();
+			containerVrtPath.replace(containerVrtPath.find(m_MilaFolderPath),m_MilaFolderPath.length(),m_ContainerVRTFolderPath.data());
+			containerVrtPath.replace(containerVrtPath.find(node->fts_name),outName.length(),"");
 
 			//////////////////////////////////////////////////
 			//Loading document
@@ -246,31 +338,33 @@ bool CMilatoCWBConverter::ConvertFromMilaToVrt(){
 			{
 				//If valid
 
-				//Create writing file stream
-				outName = vrtPath + outName;
-				ofstream outputFile(outName.data());
+				//Create writing file streams
 
+				//main vrt
+				ofstream outputFile((vrtPath + outName).data());
+
+				//Container vrt
+				ofstream containerOutputFile((containerVrtPath + outName).data());
 
 				xml_node corpusNode= doc.child("corpus");
 				if (corpusNode)
 				{
 					//If enable to open output file
-					if (outputFile.is_open())
+					if (outputFile.is_open() && containerOutputFile.is_open())
 					{
 
 						//Start parsing the xml file into the outputfile
 
 						//Create a corpus object
-						CCorpus corpus(&corpusNode,&outputFile, sCurrentFolder);
-
-						//Initialize the mila converter helper class
-						corpus.InitializeConverter();
+						CCorpus corpus(&corpusNode,&outputFile, &containerOutputFile, sVrtTextID ,sContainerVrtTextID);
 
 						//Start parsing
 						if (!corpus.Parse())
 							cout << endl << "Error Parsing " << corpusNode.attribute("name").value() << endl;
 
+
 						outputFile.close();
+						containerOutputFile.close();
 					}
 					else //if Failed to open file
 					{
@@ -500,7 +594,7 @@ bool CMilatoCWBConverter::CreateAContainerCorpus(){
 	mkdir(sCorpusPath.data() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 	//Open a linux folders tree
-	char *dot[] = {const_cast<char *>(m_VrtFolderPath.data()), 0};
+	char *dot[] = {const_cast<char *>(m_ContainerVRTFolderPath.data()), 0};
 	FTS *tree = fts_open(dot,FTS_NOCHDIR, 0);
 	if (!tree) {
 		perror("fts_open");

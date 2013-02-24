@@ -16,7 +16,7 @@ using namespace pugi;
 
 class CToken : public CMilaElement {
 public:
-	CToken(xml_node* doc, ofstream* out);
+	CToken(xml_node* doc, ofstream* out , ofstream* containerOut);
 	virtual ~CToken();
 	virtual bool Parse();
 

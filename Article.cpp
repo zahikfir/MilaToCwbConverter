@@ -7,13 +7,15 @@
 
 #include "Article.h"
 
-CArticle::CArticle(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CArticle::CArticle(xml_node* doc, ofstream* out  , ofstream* containerOut) :CMilaElement(doc, out , containerOut) {
 	m_name = ARTICLE;
 	*m_out << "<a>" << endl;
+	*m_ContainerOut << "<a>" << endl;
 }
 
 CArticle::~CArticle() {
 	*m_out << "</a>" << endl;
+	*m_ContainerOut << "</a>" << endl;
 }
 
 bool CArticle::Parse(){
@@ -22,7 +24,7 @@ bool CArticle::Parse(){
 			node;
 			node = node.next_sibling(PARAGRAPH))
 	{
-		CParagraph paragraph(&node, m_out);
+		CParagraph paragraph(&node, m_out , m_ContainerOut);
 
 		if (!paragraph.Parse())
 			return false;

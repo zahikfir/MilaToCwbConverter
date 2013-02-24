@@ -22,7 +22,7 @@
 #define EMPTYCELL "N"
 #define EMPTYATTRIB "N"
 
-#define DUMMYSENTENCE "endText\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9"
+#define DUMMYSENTENCE "סוףטקסט\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9\t9"
 
 #define MILAELEMENT "milaElement"
 

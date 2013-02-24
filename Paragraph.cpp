@@ -7,13 +7,15 @@
 
 #include "Paragraph.h"
 
-CParagraph::CParagraph(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CParagraph::CParagraph(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out ,containerOut) {
 	m_name = PARAGRAPH;
 	*m_out << "<p>" << endl;
+	*m_ContainerOut << "<p>" << endl;
 }
 
 CParagraph::~CParagraph() {
 	*m_out << "</p>" << endl;
+	*m_ContainerOut << "</p>" << endl;
 }
 
 bool CParagraph::Parse(){
@@ -22,7 +24,7 @@ bool CParagraph::Parse(){
 			node;
 			node = node.next_sibling(SENTENCE))
 	{
-		CSentence sentence(&node, m_out);
+		CSentence sentence(&node, m_out , m_ContainerOut);
 
 		if (!sentence.Parse())
 			return false;

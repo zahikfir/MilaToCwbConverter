@@ -12,7 +12,8 @@ CErrorLogger* errorLogger;
 CMilaConvereter CMilaElement::milaConverter;
 
 
-CMilaElement::CMilaElement(xml_node* doc ,ofstream* out)  : m_doc(doc), m_out(out){
+CMilaElement::CMilaElement(xml_node* doc ,ofstream* out ,ofstream* containerOut)  :
+		m_doc(doc), m_out(out), m_ContainerOut(containerOut) {
 	m_name = MILAELEMENT;
 }
 
@@ -36,6 +37,7 @@ bool CMilaElement::ParseAttrib(char_t* attrName, bool required, char* defaultVal
 	{
 		if (print){
 			*m_out << attr.value() << "\t";
+			*m_ContainerOut << attr.value() << "\t";
 		}
 	}
 	if (!attr)
@@ -47,6 +49,7 @@ bool CMilaElement::ParseAttrib(char_t* attrName, bool required, char* defaultVal
 		{
 			if (print){
 			*m_out << defaultValue << "\t";
+			*m_ContainerOut << defaultValue << "\t";
 			}
 		}
 	}

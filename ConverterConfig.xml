@@ -2,6 +2,7 @@
 <configuration>
 	<MilaCorporaPath path="The Path to the Input Mila Folder"/>
 	<VRTFolderPath path="The Path to the Vrt Temp Folder"/>
+	<ContainerCorpusVRTFolder path="The path to the vrt folder for the container corpus" />
 	<CWBDataFolderPath path="The Path to the CWB Data Folder"/>
 	<CWBRegistryFolderPath path="The path to the CWB Registry folder"/> 
 	<ErrorLogger path="The Path to the Error Output Log"/>

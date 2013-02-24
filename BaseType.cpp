@@ -65,10 +65,10 @@ bool CBaseType::InitializeBaseFunctions(){
 	return true;
 }
 
-bool CBaseType::Parse(xml_node* node, ofstream* out){
+bool CBaseType::Parse(xml_node* node, ofstream* out , ofstream* containerOut){
 
 	if (m_BaseFunctionsMap[node->name()] != NULL)
-		m_BaseFunctionsMap[node->name()](node, out);
+		m_BaseFunctionsMap[node->name()](node, out , containerOut);
 	else {
 
 		errorLogger->PrintError("Created an empty base type for node  " , node);
@@ -80,14 +80,19 @@ bool CBaseType::Parse(xml_node* node, ofstream* out){
 			{
 				//Print all the empty flags
 				for (int j = 0 ; j < BASE_FLAGS ; j++)
+				{
 					*out << EMPTYATTRIB;
+					*containerOut << EMPTYATTRIB;
+				}
 
 				//Move to the next cell
 				*out << "\t";
+				*containerOut << "\t";
 			}
 			else
 			{
 				*out << EMPTYCELL << "\t";
+				*containerOut << EMPTYCELL << "\t";
 			}
 		}
 
@@ -96,7 +101,7 @@ bool CBaseType::Parse(xml_node* node, ofstream* out){
 	return true;
 }
 
-bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out){
+bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out, ofstream* containerOut){
 	xml_attribute attr;
 
 	attr = node->attribute(attrName);
@@ -104,6 +109,7 @@ bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultVa
 	{
 		if (print){
 			*out << m_Converter->GetBaseConvertedString(attrName, attr.value() , node);
+			*containerOut << m_Converter->GetBaseConvertedString(attrName, attr.value() , node);
 		}
 	}
 	if (!attr)
@@ -115,6 +121,7 @@ bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultVa
 		{
 			if (print){
 				*out << m_Converter->GetBaseConvertedString(attrName, defaultValue , node);
+				*containerOut << m_Converter->GetBaseConvertedString(attrName, defaultValue , node);
 			}
 		}
 	}
@@ -122,7 +129,7 @@ bool CBaseType::ParseBaseAttrib(char_t* attrName, bool required, char* defaultVa
 	return true;
 }
 
-bool CBaseType::ParseBaseAttribToCell(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out){
+bool CBaseType::ParseBaseAttribToCell(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out, ofstream* containerOut){
 	xml_attribute attr;
 
 	attr = node->attribute(attrName);
@@ -130,6 +137,7 @@ bool CBaseType::ParseBaseAttribToCell(char_t* attrName, bool required, char* def
 	{
 		if (print){
 			*out << attr.value() << "\t";
+			*containerOut << attr.value() << "\t";
 		}
 	}
 	if (!attr)
@@ -141,6 +149,7 @@ bool CBaseType::ParseBaseAttribToCell(char_t* attrName, bool required, char* def
 		{
 			if (print){
 			*out << defaultValue << "\t";
+			*containerOut << defaultValue << "\t";
 			}
 		}
 	}
@@ -148,12 +157,15 @@ bool CBaseType::ParseBaseAttribToCell(char_t* attrName, bool required, char* def
 	return true;
 }
 
-bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out){
+bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defaultValue, bool print, xml_node* node, ofstream* out, ofstream* containerOut){
 	string typeName = m_BaseTypeMap[attrName];
 
 	//cout << "The Type Name of base: " << attrName << " is: " << typeName << endl;
 	if (typeName ==  "" && print)
+	{
 		*out << defaultValue;
+		*containerOut << m_Converter->GetBaseConvertedString(typeName, defaultValue , node);
+	}
 	else
 	{
 		xml_attribute attr;
@@ -163,6 +175,7 @@ bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defau
 		{
 			if (print){
 				*out << m_Converter->GetBaseConvertedString(typeName, attr.value() , node);
+				*containerOut << m_Converter->GetBaseConvertedString(typeName, attr.value() , node);
 			}
 		}
 		if (!attr)
@@ -174,6 +187,7 @@ bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defau
 			{
 				if (print){
 					*out << m_Converter->GetBaseConvertedString(typeName, defaultValue , node);
+					*containerOut << m_Converter->GetBaseConvertedString(typeName, defaultValue , node);
 				}
 			}
 		}
@@ -181,42 +195,43 @@ bool CBaseType::ParseTypeBaseAttrib(char_t* attrName, bool required, char* defau
 	return true;
 }
 
-bool CBaseType::adjective(xml_node* node, ofstream* out)
+bool CBaseType::adjective(xml_node* node, ofstream* out, ofstream* containerOut)
 {
-	if (!ParseBaseAttrib("BaseType", false, "adjective", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "masculine", true, node, out) ||
-		!ParseBaseAttrib("number", false, "singular", true, node, out) ||
-		!ParseBaseAttrib("status", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, "false", true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("adjective", false, EMPTYATTRIB, true, node, out))
+	if (!ParseBaseAttrib("BaseType", false, "adjective", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "masculine", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "singular", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("adjective", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("function", false, "adjective", true, node, out) ||
-		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("function", false, "adjective", true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 		//Type cell only valid in MWE Type
-		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 		)
 	{
 		return false;
@@ -227,41 +242,42 @@ bool CBaseType::adjective(xml_node* node, ofstream* out)
 	return true;
 }
 
-bool CBaseType::adverb(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "adverb", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("adverb", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::adverb(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "adverb", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("adverb", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-		if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-			!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-			!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+		if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+			!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+			!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 			//Type cell only valid in MWE Type
-			// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+			// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 			)
 		{
 			return false;
@@ -272,316 +288,329 @@ bool CBaseType::adverb(xml_node* node, ofstream* out){
 	return true;
 }
 
-bool CBaseType::zevel(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "zevel", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("zevel", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::zevel(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "zevel", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("zevel", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::conjunction(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "conjunction", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("conjunction", false, "coordinating", true, node, out))
+bool CBaseType::conjunction(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "conjunction", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("conjunction", false, "coordinating", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::interjection(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "interjection", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("interjection", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::interjection(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "interjection", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("interjection", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 	return true;
 
 }
 
-bool CBaseType::interrogative(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "interrogative", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("interrogative", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::interrogative(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "interrogative", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("interrogative", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::negation(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "negation", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("negation", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::negation(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "negation", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("negation", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::foreign(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "foreign", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::foreign(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "foreign", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::url(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "url", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("noun", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::url(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "url", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("noun", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	///and now for the other base cells
-	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 		//Type cell only valid in MWE Type
-		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 		)
 	{
 		return false;
@@ -593,591 +622,616 @@ bool CBaseType::url(xml_node* node, ofstream* out){
 	return true;
 }
 
-bool CBaseType::noun(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "noun", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "masculine", true, node, out) ||
-		!ParseBaseAttrib("number", false, "singular", true, node, out) ||
-		!ParseBaseAttrib("status", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, "false", true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("noun", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::noun(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "noun", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "masculine", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "singular", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("noun", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, "adjective", true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, "adjective", true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::preposition(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "preposition", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("preposition", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::preposition(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "preposition", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("preposition", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::pronoun(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "pronoun", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("pronoun", false, "unspecified", true, node, out))
+bool CBaseType::pronoun(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "pronoun", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("pronoun", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::properName(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "properName", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "masculine", true, node, out) ||
-		!ParseBaseAttrib("number", false, "singular", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("properName", false, "unspecified", true, node, out))
+bool CBaseType::properName(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "properName", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "masculine", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "singular", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("properName", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::punctuation(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "punctuation", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("punctuation", false, "unspecified", true, node, out))
+bool CBaseType::punctuation(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "punctuation", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("punctuation", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::numberExpression(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "numberExpression", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("numberExpression", false, "unspecified", true, node, out))
+bool CBaseType::numberExpression(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "numberExpression", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("numberExpression", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::quantifier(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "quantifier", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, "absolute and construct", true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("quantifier", false, "unspecified", true, node, out))
+bool CBaseType::quantifier(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "quantifier", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, "absolute and construct", true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("quantifier", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::verb(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "verb", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("binyan", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("verb", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::verb(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "verb", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("verb", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::participle(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "participle", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, "absolute and construct", true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("participle", false, "verb", true, node, out))
+bool CBaseType::participle(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "participle", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, "absolute and construct", true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("participle", false, "verb", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, "false", true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, "false", true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::numeral(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "numeral", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "masculine", true, node, out) ||
-		!ParseBaseAttrib("number", false, "singular", true, node, out) ||
-		!ParseBaseAttrib("status", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("numeral", false, "unspecified", true, node, out))
+bool CBaseType::numeral(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "numeral", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "masculine", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "singular", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("numeral", false, "unspecified", true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::existential(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "existential", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("interrogative", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("existential", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::existential(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "existential", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("interrogative", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("existential", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, "", true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, "", true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::impersonal(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "impersonal", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("impersonal", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::impersonal(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "impersonal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("impersonal", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 	return true;
 }
 
-bool CBaseType::wPrefix(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "wPrefix", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("wPrefix", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::wPrefix(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "wPrefix", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("wPrefix", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	///and now for the other base cells
-	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 		//Type cell only valid in MWE Type
-		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+		// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 		)
 	{
 		return false;
@@ -1189,178 +1243,185 @@ bool CBaseType::wPrefix(xml_node* node, ofstream* out){
 	return true;
 }
 
-bool CBaseType::modal(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "modal", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("modal", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::modal(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "modal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("modal", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, "false", true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, "false", true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::copula(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "copula", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("tense", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("copula", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::copula(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "copula", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("copula", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::title(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "title", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("title", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::title(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "title", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("title", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;
 }
 
-bool CBaseType::MWE(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "MWE", true, node, out) ||
-		!ParseBaseAttrib("gender", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("number", false, "unspecified", true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, "formal", true, node, out) ||
-		!ParseBaseAttrib("spelling", false, "standard", true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, "false", true, node, out) ||
-		!ParseTypeBaseAttrib("MWE", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::MWE(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "MWE", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, "unspecified", true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, "formal", true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, "standard", true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, "false", true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("MWE", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out) ||
-		!ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out))
+	if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut) ||
+		!ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut))
 	{
 		return false;
 	}
@@ -1368,47 +1429,49 @@ bool CBaseType::MWE(xml_node* node, ofstream* out){
 	return true;
 }
 
-bool CBaseType::unknown(xml_node* node, ofstream* out){
-	if (!ParseBaseAttrib("BaseType", false, "unknown", true, node, out) ||
-		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("definiteness", false, "false", true, node, out) ||
-		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out) ||
-		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out) ||
-		!ParseTypeBaseAttrib("unknown", false, EMPTYATTRIB, true, node, out))
+bool CBaseType::unknown(xml_node* node, ofstream* out, ofstream* containerOut){
+	if (!ParseBaseAttrib("BaseType", false, "unknown", true, node, out, containerOut) ||
+		!ParseBaseAttrib("gender", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("number", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("status", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("definiteness", false, "false", true, node, out, containerOut) ||
+		!ParseBaseAttrib("foreign", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("register", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("spelling", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("person", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("tense", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("binyan", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("polarity", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseBaseAttrib("multiWordPrefixExist", false, EMPTYATTRIB, true, node, out, containerOut) ||
+		!ParseTypeBaseAttrib("unknown", false, EMPTYATTRIB, true, node, out, containerOut))
 		{
 			return false;
 		}
 
 	//Finished parsing flags
 	*out << "\t" ;
+	*containerOut << "\t" ;
 
 	//and now for the other base cells
-			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out)||
-				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out) ||
-				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out)
+			if (!ParseBaseAttribToCell("expansion", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("function", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("root", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("subcoordinating", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("mood", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("value", false, EMPTYCELL, true, node, out, containerOut)||
+				!ParseBaseAttribToCell("id", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("pos", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("consecutive", false, EMPTYCELL, true, node, out, containerOut) ||
+				!ParseBaseAttribToCell("multiWord", false, EMPTYCELL, true, node, out, containerOut)
 				//Type cell only valid in MWE Type
-				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out)
+				// || !ParseBaseAttribToCell("type", false, EMPTYCELL, true, node, out, containerOut)
 				)
 			{
 				return false;
 			}
 			//Type Cell only valid in MWE type
 			*out << EMPTYCELL << "\t";
+			*containerOut << EMPTYCELL << "\t";
 
 
 	return true;

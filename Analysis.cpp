@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 // CPrefixNode implementation
 
-CPrefixNode::CPrefixNode(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CPrefixNode::CPrefixNode(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = PREFIX;
 }
 
@@ -30,6 +30,7 @@ bool CPrefixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 	{
 		if (print){
 			*m_out << milaConverter.GetPrefixConvertedString(attrName, attr.value(),node);
+			*m_ContainerOut << milaConverter.GetPrefixConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -41,6 +42,7 @@ bool CPrefixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 		{
 			if (print){
 				*m_out << milaConverter.GetPrefixConvertedString(attrName, defaultValue,node);
+				*m_ContainerOut << milaConverter.GetPrefixConvertedString(attrName, defaultValue,node);
 			}
 		}
 	}
@@ -59,6 +61,7 @@ bool CPrefixNode::Parse(){
 	}
 
 	*m_out << "\t" ;
+	*m_ContainerOut << "\t" ;
 
 	return true;
 }
@@ -69,7 +72,7 @@ bool CPrefixNode::Parse(){
 bool CBaseNode::m_Initialize = false;
 CBaseType* CBaseNode::m_BaseTypeHelper = NULL;
 
-CBaseNode::CBaseNode(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CBaseNode::CBaseNode(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = BASE;
 	if (!m_Initialize)
 	{
@@ -93,6 +96,7 @@ bool CBaseNode::ParseAttrib(char_t* attrName, bool required, char* defaultValue,
 	{
 		if (print){
 			*m_out << milaConverter.GetBaseConvertedString(attrName, attr.value(),node);
+			*m_ContainerOut << milaConverter.GetBaseConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -104,6 +108,7 @@ bool CBaseNode::ParseAttrib(char_t* attrName, bool required, char* defaultValue,
 		{
 			if (print){
 				*m_out << milaConverter.GetBaseConvertedString(attrName, defaultValue , node);
+				*m_ContainerOut << milaConverter.GetBaseConvertedString(attrName, defaultValue , node);
 			}
 		}
 	}
@@ -116,17 +121,23 @@ bool CBaseNode::Parse(){
 	//Priniting the lexicon
 
 	if (m_doc->attribute("lexiconItem"))
+	{
 		*m_out << m_doc->attribute("lexiconItem").value() << "\t";
+		*m_ContainerOut << m_doc->attribute("lexiconItem").value() << "\t";
+	}
 	else
+	{
 		*m_out << EMPTYCELL << "\t";
+		*m_ContainerOut << EMPTYCELL << "\t";
+	}
 
 	//Updating the m_doc node
 	xml_node node = m_doc->first_child();
 
-	if (!m_BaseTypeHelper->Parse(&node, m_out))
+	if (!m_BaseTypeHelper->Parse(&node, m_out , m_ContainerOut))
 	{
 		string error = m_doc->attribute("lexiconItem").value();
-		error.insert(0,"For lexiconItem : ");
+		error = "For lexiconItem : " + error;
 		errorLogger->PrintError( error, &node);
 		return false;
 	}
@@ -138,7 +149,7 @@ bool CBaseNode::Parse(){
 ///////////////////////////////////////////////////////////////////////////////////////////
 // CSuffixNode implementation
 
-CSuffixNode::CSuffixNode(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CSuffixNode::CSuffixNode(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = SUFFIX;
 }
 
@@ -157,6 +168,7 @@ bool CSuffixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 	{
 		if (print){
 			*m_out << milaConverter.GetSuffixConvertedString(attrName, attr.value(),node);
+			*m_ContainerOut << milaConverter.GetSuffixConvertedString(attrName, attr.value(),node);
 		}
 	}
 	if (!attr)
@@ -168,6 +180,7 @@ bool CSuffixNode::ParseAttrib(char_t* attrName, bool required, char* defaultValu
 		{
 			if (print){
 				*m_out << milaConverter.GetSuffixConvertedString(attrName, defaultValue,node);
+				*m_ContainerOut << milaConverter.GetSuffixConvertedString(attrName, defaultValue,node);
 			}
 		}
 	}
@@ -192,7 +205,7 @@ bool CSuffixNode::Parse(){
 ////////////////////////////////////////////////////////////////////////////////////////////
 // CAnalysis implementation
 
-CAnalysis::CAnalysis(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CAnalysis::CAnalysis(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = ANALYSIS;
 }
 
@@ -209,7 +222,7 @@ bool CAnalysis::Parse(){
 			prefixNode && (nPrefixCounter < MAX_PREFIX);
 			prefixNode = prefixNode.next_sibling("prefix") , nPrefixCounter++)
 	{
-		CPrefixNode prefix(&prefixNode, m_out);
+		CPrefixNode prefix(&prefixNode, m_out , m_ContainerOut);
 		if (!prefix.Parse())
 			return false;
 	}
@@ -219,10 +232,14 @@ bool CAnalysis::Parse(){
 	{
 		//Print all the empty flags
 		for (int j = 0 ; j < PREFIX_FLAGS ; j++)
+		{
 			*m_out << EMPTYATTRIB;
+			*m_ContainerOut << EMPTYATTRIB;
+		}
 
 		//Move to the next cell
 		*m_out << "\t";
+		*m_ContainerOut << "\t";
 	}
 
 
@@ -231,11 +248,11 @@ bool CAnalysis::Parse(){
 	xml_node baseNode = m_doc->child("base");
 	if (baseNode)
 	{
-		CBaseNode base(&baseNode, m_out);
+		CBaseNode base(&baseNode, m_out, m_ContainerOut);
 		if (!base.Parse())
 		{
 			string error = m_doc->attribute("id").value();
-			error.insert(0,"in analysis node : ");
+			error = "in analysis node : " + error;
 			errorLogger->PrintError( error , m_doc);
 		}
 	}
@@ -249,14 +266,19 @@ bool CAnalysis::Parse(){
 			{
 				//Print all the empty flags
 				for (int j = 0 ; j < BASE_FLAGS ; j++)
+				{
 					*m_out << EMPTYATTRIB;
+					*m_ContainerOut << EMPTYATTRIB;
+				}
 
 				//Move to the next cell
 				*m_out << "\t";
+				*m_ContainerOut << "\t";
 			}
 			else
 			{
 				*m_out << EMPTYCELL << "\t";
+				*m_ContainerOut << EMPTYCELL << "\t";
 			}
 		}
 	}
@@ -266,7 +288,7 @@ bool CAnalysis::Parse(){
 	xml_node suffixNode = m_doc->child("suffix");
 	if (suffixNode)
 	{
-		CSuffixNode suffix(&suffixNode, m_out);
+		CSuffixNode suffix(&suffixNode, m_out , m_ContainerOut);
 		suffix.Parse();
 	}
 	else {
@@ -276,10 +298,14 @@ bool CAnalysis::Parse(){
 		{
 			//Print the Empty Flags
 			for (int j = 0 ; j < SUFFIX_FLAGS ; j++)
+			{
 				*m_out << EMPTYATTRIB ;
+				*m_ContainerOut << EMPTYATTRIB ;
+			}
 
 			//Move to the next cell
 			*m_out << "\t";
+			*m_ContainerOut << "\t";
 		}
 	}
 

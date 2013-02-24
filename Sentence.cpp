@@ -7,13 +7,15 @@
 
 #include "Sentence.h"
 
-CSentence::CSentence(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CSentence::CSentence(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = SENTENCE;
 	*m_out << "<s>" << endl;
+	*m_ContainerOut << "<s>" << endl;
 }
 
 CSentence::~CSentence() {
 	*m_out << "</s>" << endl;
+	*m_ContainerOut << "</s>" << endl;
 }
 
 bool CSentence::Parse(){
@@ -24,7 +26,7 @@ bool CSentence::Parse(){
 			node = node.next_sibling(TOKEN))
 	{
 
-		CToken token(&node, m_out);
+		CToken token(&node, m_out, m_ContainerOut);
 		if (!token.Parse())
 			return false;
 	}

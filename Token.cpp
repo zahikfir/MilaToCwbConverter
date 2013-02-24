@@ -7,7 +7,7 @@
 
 #include "Token.h"
 
-CToken::CToken(xml_node* doc, ofstream* out) :CMilaElement(doc, out) {
+CToken::CToken(xml_node* doc, ofstream* out , ofstream* containerOut) :CMilaElement(doc, out, containerOut) {
 	m_name = TOKEN;
 }
 
@@ -26,15 +26,17 @@ bool CToken::Parse(){
 
 		//output the current token and tab
 		*m_out << m_doc->attribute("surface").value() << "\t";
+		*m_ContainerOut << m_doc->attribute("surface").value() << "\t";
 
 		//Print the correct analysis
 
-		CAnalysis analysis(&correctAnalysisNode, m_out);
+		CAnalysis analysis(&correctAnalysisNode, m_out, m_ContainerOut);
 		if (!analysis.Parse())
 			return false;
 
 		//endline
 		*m_out << endl;
+		*m_ContainerOut << endl;
 
 	}
 	else

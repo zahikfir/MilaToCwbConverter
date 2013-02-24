@@ -16,7 +16,7 @@ using namespace pugi;
 
 class CArticle :public CMilaElement {
 public:
-	CArticle(xml_node* doc, ofstream* out);
+	CArticle(xml_node* doc, ofstream* out , ofstream* containerOut);
 	virtual ~CArticle();
 	virtual bool Parse();
 };
